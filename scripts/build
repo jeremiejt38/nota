@@ -25,7 +25,7 @@ cat > "tsconfig.json" << EOF
         "target": "es2022",
         "lib": [ "es2022" ],
         "rootDir": "./src",
-        "outDir": "$ext_dir",
+        "outDir": "./build",
         "strict": true,
         "pretty": true,
         "incremental": true,
@@ -78,11 +78,17 @@ fi
 # ==============================================================================
 # Compile TypeScript
 # ==============================================================================
-if command -v npx >/dev/null; then
-    npx tsc
+if [ -x "./node_modules/.bin/tsc" ]; then
+    ./node_modules/.bin/tsc
 elif command -v tsc >/dev/null; then
     tsc
 else
     echo "tsc not found. Install TypeScript or run 'npm install'." >&2
     exit 1
+fi
+
+# Copy compiled JS into the extension directory.
+if [ -d "./build" ]; then
+    cp -r ./build/* "$ext_dir"
+    rm -rf ./build
 fi
