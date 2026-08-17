@@ -44,7 +44,7 @@ export class KanbanView {
         const settings_button = button_box.add({ icon: 'cronomix-wrench-symbolic' });
 
         //
-        // Project selector
+        // Project selector with autocomplete
         //
         const projects = new Set<string>();
         for (const task of applet.tasks) {
@@ -59,21 +59,48 @@ export class KanbanView {
         const project_label = new St.Label({ text: _('Projects'), style: 'font-weight: bold;', style_class: 'cronomix-box' });
         project_box.add_child(project_label);
 
-        const project_scroll = new ScrollBox(false);
-        project_box.add_child(project_scroll.actor);
-        project_scroll.actor.visible = projects.size > 0;
+        const project_entry = new Entry(_('Type to filter projects...'));
+        project_box.add_child(project_entry.actor);
+        project_entry.actor.visible = projects.size > 0;
 
-        const project_button_box = new ButtonBox(project_scroll.box, false);
+        const suggestions_scroll = new ScrollBox(false);
+        project_box.add_child(suggestions_scroll.actor);
+        suggestions_scroll.actor.visible = projects.size > 0;
 
-        const all_button = project_button_box.add({ label: _('All') });
-        if (!applet.project_filter) all_button.actor.add_style_pseudo_class('checked');
-        all_button.subscribe('left_click', () => { applet.project_filter = ''; applet.show_main_view(); });
+        const suggestion_box = new St.BoxLayout({ style_class: 'cronomix-spacing' });
+        suggestions_scroll.box.add_child(suggestion_box);
 
-        for (const project of Array.from(projects).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))) {
-            const button = project_button_box.add({ label: project, style_class: 'cronomix-project-button' });
-            if (applet.project_filter === project) button.actor.add_style_pseudo_class('checked');
-            button.subscribe('left_click', () => { applet.project_filter = project; applet.show_main_view(); });
-        }
+        const project_list = Array.from(projects).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+
+        const render_suggestions = () => {
+            const needle = project_entry.entry.text.toLowerCase();
+            suggestion_box.destroy_all_children();
+
+            const all_button = new Button({ parent: suggestion_box, label: _('All'), style_class: 'cronomix-project-button' });
+            if (!applet.project_filter) all_button.actor.add_style_pseudo_class('checked');
+            all_button.subscribe('left_click', () => { applet.project_filter = ''; applet.show_main_view(); });
+
+            for (const project of project_list) {
+                if (needle && !project.toLowerCase().includes(needle)) continue;
+                const button = new Button({ parent: suggestion_box, label: project, style_class: 'cronomix-project-button' });
+                if (applet.project_filter === project) button.actor.add_style_pseudo_class('checked');
+                button.subscribe('left_click', () => { applet.project_filter = project; applet.show_main_view(); });
+            }
+        };
+
+        project_entry.entry.clutter_text.connect('text-changed', () => render_suggestions());
+        render_suggestions();
+
+        project_entry.entry.clutter_text.connect('captured-event', (_: unknown, event: Clutter.Event) => {
+            if (event.type() !== Clutter.EventType.KEY_PRESS) return Clutter.EVENT_PROPAGATE;
+            if (event.get_key_symbol() === Clutter.KEY_Return || event.get_key_symbol() === Clutter.KEY_KP_Enter) {
+                const text = project_entry.entry.text.trim();
+                applet.project_filter = text;
+                applet.show_main_view();
+                return Clutter.EVENT_STOP;
+            }
+            return Clutter.EVENT_PROPAGATE;
+        });
 
         //
         // columns

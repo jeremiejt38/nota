@@ -54,19 +54,35 @@ cp -r "data/metadata.json" "$ext_dir/metadata.json"
 # ==============================================================================
 # Build translation files
 # ==============================================================================
-mo_dir="$ext_dir/locale"
-po_dir="data/translations"
-po_files=$(find "$po_dir" -name "*.po")
-template="data/translations/template.pot"
+if command -v xgettext >/dev/null && command -v msgmerge >/dev/null && command -v msgfmt >/dev/null; then
+    mo_dir="$ext_dir/locale"
+    po_dir="data/translations"
+    po_files=$(find "$po_dir" -name "*.po")
+    template="data/translations/template.pot"
 
-find "src" -type f -name "*.ts" |
-    xgettext --no-location --language=JavaScript --from-code=UTF-8 --add-comments="TRANSLATORS:" -o "$template" -f -
+    find "src" -type f -name "*.ts" |
+        xgettext --no-location --language=JavaScript --from-code=UTF-8 --add-comments="TRANSLATORS:" -o "$template" -f -
 
-for po_file in $po_files; do
-    msgmerge --quiet -U "$po_file" --backup="none" "$template"
-    msgattrib --output-file="$po_file" --no-obsolete "$po_file"
-    lang=${po_file##*/}
-    lang=${lang%.*}
-    mkdir -p "$mo_dir/$lang/LC_MESSAGES/"
-	msgfmt "$po_dir/$lang.po" -o "$mo_dir/$lang/LC_MESSAGES/nota.mo"
-done
+    for po_file in $po_files; do
+        msgmerge --quiet -U "$po_file" --backup="none" "$template"
+        msgattrib --output-file="$po_file" --no-obsolete "$po_file"
+        lang=${po_file##*/}
+        lang=${lang%.*}
+        mkdir -p "$mo_dir/$lang/LC_MESSAGES/"
+    	msgfmt "$po_dir/$lang.po" -o "$mo_dir/$lang/LC_MESSAGES/nota.mo"
+    done
+else
+    echo "gettext tools not found; skipping translation build." >&2
+fi
+
+# ==============================================================================
+# Compile TypeScript
+# ==============================================================================
+if command -v npx >/dev/null; then
+    npx tsc
+elif command -v tsc >/dev/null; then
+    tsc
+else
+    echo "tsc not found. Install TypeScript or run 'npm install'." >&2
+    exit 1
+fi
