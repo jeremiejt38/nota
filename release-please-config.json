@@ -1,7 +1,6 @@
 {
   "packages": {
     ".": {
-      "package-name": "nota",
       "release-type": "simple",
       "extra-files": [
         "data/metadata.json"
