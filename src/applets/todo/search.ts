@@ -95,7 +95,6 @@ export class SearchView {
             if (bem_delete_checkbox.checked) {
                 for (const task of this.#filtered_tasks) {
                     Misc.array_remove(applet.tasks, task);
-                    if (applet.tracker.is_tracking(task)) applet.tracker.stop();
                 }
             } else {
                 const txt = '[' + bem_del_attributes_entry.entry.text + ']\n' + '[' + bem_add_attributes_entry.entry.text + ']';
@@ -123,7 +122,6 @@ export class SearchView {
                     if (add.tags) { conf.tags ??= new Set(); for (const tag of add.tags) conf.tags.add(tag); }
 
                     task.serialize_header();
-                    applet.tracker.update_slot(task);
                 }
             }
 

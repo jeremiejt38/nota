@@ -1,8 +1,9 @@
 {
-    "name":           "Cronomix",
-    "uuid":           "cronomix@zagortenay333",
-    "url":            "https://github.com/zagortenay333/cronomix",
-    "description":    "All-in-one timer, stopwatch, pomodoro, alarm, todo, and flashcards extension.",
+    "name":           "Nota",
+    "uuid":           "nota@jeremiejt38",
+    "url":            "https://github.com/jeremiejt38/nota",
+    "description":    "Quick notes and project tagging in the GNOME top panel. A focused fork of Chronomix.",
     "shell-version":  ["49", "50"],
-    "gettext-domain": "cronomix"
+    "version":        1,
+    "gettext-domain": "nota"
 }

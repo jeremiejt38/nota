@@ -477,3 +477,23 @@
     border-radius-bottomleft: 8px;
     border-radius-bottomright: 8px;
 }
+
+/* ==========================================================================
+ * Nota additions (touch-friendly & project UI)
+ * ========================================================================== */
+.cronomix-touch-button,
+.cronomix-priority-button,
+.cronomix-project-button {
+    min-height: 36px;
+    padding: 8px 12px;
+}
+
+.cronomix-project-button {
+    min-width: 80px;
+}
+
+.cronomix-note-hint {
+    font-size: 0.85em;
+    color: rgba(255, 255, 255, .6);
+    padding: 4px 0;
+}

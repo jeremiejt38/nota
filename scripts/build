@@ -12,7 +12,7 @@ set -u
 # ==============================================================================
 cd "${BASH_SOURCE%/*}/.."
 
-uuid="cronomix@zagortenay333"
+uuid="nota@jeremiejt38"
 ext_dir=~/".local/share/gnome-shell/extensions/${uuid}"
 
 # ==============================================================================
@@ -68,5 +68,5 @@ for po_file in $po_files; do
     lang=${po_file##*/}
     lang=${lang%.*}
     mkdir -p "$mo_dir/$lang/LC_MESSAGES/"
-	msgfmt "$po_dir/$lang.po" -o "$mo_dir/$lang/LC_MESSAGES/cronomix.mo"
+	msgfmt "$po_dir/$lang.po" -o "$mo_dir/$lang/LC_MESSAGES/nota.mo"
 done

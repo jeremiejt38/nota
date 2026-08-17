@@ -6,12 +6,7 @@ import * as Fs from './utils/fs.js';
 import { Storage } from './utils/storage.js';
 import { Applet } from './applets/applet.js';
 import { light_or_dark } from './utils/misc.js';
-import { TimerApplet } from './applets/timer.js';
-import { AlarmApplet } from './applets/alarm.js';
 import { TodoApplet } from './applets/todo/main.js';
-import { PomodoroApplet } from './applets/pomodoro.js';
-import { StopwatchApplet } from './applets/stopwatch.js';
-import { FlashcardsApplet } from './applets/flashcards.js';
 
 //
 // To register a new applet:
@@ -22,31 +17,21 @@ import { FlashcardsApplet } from './applets/flashcards.js';
 //
 export const applets = [
     [ 'todo', TodoApplet ],
-    [ 'alarm', AlarmApplet ],
-    [ 'timer', TimerApplet ],
-    [ 'pomodoro', PomodoroApplet ],
-    [ 'stopwatch', StopwatchApplet ],
-    [ 'flashcards', FlashcardsApplet ],
 ] as const;
 
 export class Cronomix {
     storage = new Storage({
         version: 0,
-        file: '~/.config/cronomix/global.json',
+        file: '~/.config/nota/global.json',
 
         values: {
             todo:                { tag: 'boolean', value: true },
-            alarm:               { tag: 'boolean', value: true },
-            timer:               { tag: 'boolean', value: true },
-            pomodoro:            { tag: 'boolean', value: true },
-            stopwatch:           { tag: 'boolean', value: true },
-            flashcards:          { tag: 'boolean', value: true },
             theme_file:          { tag: 'file',    value: '', start: ext.path + '/data/themes/' },
             lazy_list_page_size: { tag: 'number',  value: 20, range: [1, 100000] },
         },
 
         groups: [
-            ['todo', 'alarm', 'timer', 'pomodoro', 'stopwatch', 'flashcards'],
+            ['todo'],
             ['theme_file', 'lazy_list_page_size'],
         ],
 
@@ -55,12 +40,7 @@ export class Cronomix {
         },
 
         translations: {
-            todo: _('Todo'),
-            alarm: _('Alarm'),
-            timer: _('Timer'),
-            pomodoro: _('Pomodoro'),
-            stopwatch: _('Stopwatch'),
-            flashcards: _('Flashcards'),
+            todo: _('Notes'),
             theme_file: _('Theme css (empty for auto selection)'),
             lazy_list_page_size: _('Lazy list page size'),
         }

@@ -85,6 +85,7 @@ export class TodoApplet extends Applet {
     tracker: TimeTracker;
     tasks = new Array<Task>();
     non_tasks = new Array<string>();
+    project_filter = ''; // Active project tag filter in the main view.
 
     #current_view: null | { destroy: () => void } = null;
     #todo_file_monitor: Fs.FileMonitor | null = null;

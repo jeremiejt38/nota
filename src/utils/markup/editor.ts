@@ -29,6 +29,7 @@ export class Editor {
     on_text_changed?: () => void; // user supplied
     on_cursor_changed?: () => void; // user supplied
     get_completions?: (ref: string) => string[]; // user supplied
+    on_save?: () => void; // user supplied: called on Enter when set
 
     #text_change_sig   = 0;
     #cursor_change_sig = 0;
@@ -138,7 +139,7 @@ export class Editor {
 
             case Clutter.KEY_Return:
             case Clutter.KEY_KP_Enter: {
-                this.#on_enter_pressed();
+                this.#on_enter_pressed(event);
                 return Clutter.EVENT_STOP;
             }
 
@@ -179,17 +180,25 @@ export class Editor {
         this.on_cursor_changed?.();
     }
 
-    #on_enter_pressed () {
+    #on_enter_pressed (event: Clutter.Event) {
         if (this.#completion_menu.is_open) {
             this.#completion_menu_entry_clicked(this.#completion_menu_selected_entry);
-        } else {
-            const text   = this.entry.entry.clutter_text;
-            const pos    = this.#get_cursor_position();
-            const path   = idx_to_ast_path(pos, this.ast);
-            const node   = path.at(-1);
-            const indent = node ? '  '.repeat(node.indent + (node.tag === 'AstMeta' ? 1 : 0)) : '';
-            text.insert_text('\n' + indent, pos);
+            return;
         }
+
+        const shift = (Number((event as any).get_state()) & 1) !== 0; // 1 == Clutter.ShiftMask
+
+        if (this.on_save && !shift) {
+            this.on_save();
+            return;
+        }
+
+        const text   = this.entry.entry.clutter_text;
+        const pos    = this.#get_cursor_position();
+        const path   = idx_to_ast_path(pos, this.ast);
+        const node   = path.at(-1);
+        const indent = node ? '  '.repeat(node.indent + (node.tag === 'AstMeta' ? 1 : 0)) : '';
+        text.insert_text('\n' + indent, pos);
     }
 
     #sync_scroll (scroll_to_top = false) {
