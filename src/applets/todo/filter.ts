@@ -67,7 +67,7 @@ export class KanbanView {
         project_box.add_child(suggestions_scroll.actor);
         suggestions_scroll.actor.visible = projects.size > 0;
 
-        const suggestion_box = new St.BoxLayout({ style_class: 'cronomix-spacing' });
+        const suggestion_box = new St.BoxLayout({ style_class: 'cronomix-spacing cronomix-project-suggestions' });
         suggestions_scroll.box.add_child(suggestion_box);
 
         const project_list = Array.from(projects).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
