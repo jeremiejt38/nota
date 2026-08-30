@@ -78,6 +78,10 @@ fi
 # ==============================================================================
 # Compile TypeScript
 # ==============================================================================
+# Force a clean rebuild so the whole project is emitted after the extension
+# directory has been wiped.
+rm -f tsconfig.tsbuildinfo
+
 if [ -x "./node_modules/.bin/tsc" ]; then
     ./node_modules/.bin/tsc
 elif command -v tsc >/dev/null; then
