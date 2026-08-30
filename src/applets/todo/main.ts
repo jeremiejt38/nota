@@ -10,24 +10,20 @@ import * as P from './../../utils/markup/parser.js';
 import { ImportExportView } from './import_export.js';
 import { FilterGroup, FilterView, KanbanView } from './filter.js';
 import { Applet, PanelPosition, PanelPositionTr } from './../applet.js';
-import { TimeTracker, TimeTrackerView, TrackerQuery } from './tracker.js';
 
 export class TodoApplet extends Applet {
     storage = new Storage({
-        file: '~/.config/cronomix/todo.json',
+        file: '~/.config/nota/notes.json',
 
         values: {
             panel_position: { tag: 'enum',   value: PanelPosition.RIGHT, enum: Object.values(PanelPosition) },
             open:           { tag: 'keymap', value: null },
             add_task:       { tag: 'keymap', value: null },
             search:         { tag: 'keymap', value: null },
-            open_tracker:   { tag: 'keymap', value: null },
             open_todo_file: { tag: 'keymap', value: null },
             todo_file:      { tag: 'file',   value: '~/.config/nota/notes.md' },
             active_filter:  { tag: 'custom', value: -1 },
             filters:        { tag: 'custom', value: Array<FilterGroup>() },
-            tracker_file:   { tag: 'custom', value: '' },
-            tracker_query:  { tag: 'custom', value: new TrackerQuery() },
             sort: {
                 tag: 'custom',
                 value: [
@@ -42,7 +38,7 @@ export class TodoApplet extends Applet {
 
         groups: [
             ['todo_file', 'panel_position'],
-            ['open', 'add_task', 'search', 'open_tracker', 'open_todo_file'],
+            ['open', 'add_task', 'search', 'open_todo_file'],
         ],
 
         translations: {
@@ -51,7 +47,6 @@ export class TodoApplet extends Applet {
             add_task: _('Add note'),
             search: _('Search notes'),
             todo_file: _('Notes file'),
-            open_tracker: _('Open time tracker'),
             open_todo_file: _('Open todo file'),
             pin: _('Pin'),
             priority: _('Priority'),
@@ -75,14 +70,6 @@ export class TodoApplet extends Applet {
     // don't represent tasks, but we keep them in.
     //
     // If you edit a task that is currently being
-    // tracked, you can employ different strategies:
-    //
-    //   1. You can update the corresponding tracker slot
-    //      using the update_slot() function.
-    //   2. You can stop the tracker. The next time the
-    //      user starts tracking the edited task a dialog
-    //      will be shown asking them to update the slot.
-    tracker: TimeTracker;
     tasks = new Array<Task>();
     non_tasks = new Array<string>();
     project_filter = ''; // Active project tag filter in the main view.
@@ -97,11 +84,8 @@ export class TodoApplet extends Applet {
             open:           () => { this.panel_item.menu.open(); },
             search:         () => { this.panel_item.menu.open(); this.show_search_view(); },
             add_task:       () => { this.panel_item.menu.open(); if (! (this.#current_view instanceof TaskEditor)) this.show_task_editor(); },
-            open_tracker:   () => { this.panel_item.menu.open(); this.show_tracker_view(); },
             open_todo_file: () => { Fs.open_file_in_default_app(this.storage.read.todo_file.value ?? ''); },
         });
-
-        this.tracker = new TimeTracker(this);
         this.set_panel_position(this.storage.read.panel_position.value);
         this.storage.subscribe('todo_file', () => this.load_tasks());
         this.storage.subscribe('panel_position', ({ value }) => this.set_panel_position(value));
@@ -110,13 +94,11 @@ export class TodoApplet extends Applet {
 
     destroy () {
         this.#disable_file_monitor();
-        this.tracker.destroy();
         this.storage.destroy();
         super.destroy();
     }
 
     load_tasks () {
-        this.tracker.stop();
         this.tasks.length = 0;
         this.non_tasks.length = 0;
         this.#disable_file_monitor();
@@ -210,13 +192,6 @@ export class TodoApplet extends Applet {
     show_eximport_view () {
         this.#current_view?.destroy();
         const view = new ImportExportView(this);
-        this.#current_view = view;
-        this.menu.add_child(view.actor);
-    }
-
-    show_tracker_view (task_to_query?: Task) {
-        this.#current_view?.destroy();
-        const view = new TimeTrackerView(this, task_to_query);
         this.#current_view = view;
         this.menu.add_child(view.actor);
     }
