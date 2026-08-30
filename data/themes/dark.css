@@ -484,48 +484,48 @@
 .cronomix-touch-button,
 .cronomix-priority-button,
 .cronomix-project-button {
-    min-height: 36px;
-    padding: 8px 12px;
+    min-height: 28px;
+    padding: 5px 8px;
 }
 
 .cronomix-project-button {
-    min-width: 80px;
+    min-width: 60px;
 }
 
 .cronomix-note-hint {
-    font-size: 0.85em;
+    font-size: 0.8em;
     color: rgba(255, 255, 255, .6);
-    padding: 4px 0;
+    padding: 2px 0;
 }
 
-/* Larger hit targets across the board */
+/* Slightly larger hit targets, kept compact so the menu stays small */
 .cronomix-button {
-    padding: 10px 12px;
-    min-height: 38px;
+    padding: 5px 8px;
+    min-height: 26px;
 }
 
 .cronomix-button StIcon {
-    icon-size: 20px;
+    icon-size: 16px;
 }
 
 .cronomix-checkbox {
-    min-height: 32px;
-    min-width: 32px;
+    min-height: 22px;
+    min-width: 22px;
 }
 
 .cronomix-entry {
-    padding: 10px 12px;
-    min-height: 40px;
+    padding: 5px 8px;
+    min-height: 26px;
 }
 
 .cronomix-card .header,
 .cronomix-card .body {
-    padding: 12px;
+    padding: 8px;
 }
 
 .cronomix-menu-button {
-    padding: 10px 12px;
-    min-height: 38px;
+    padding: 5px 8px;
+    min-height: 26px;
 }
 
 .cronomix-project-button:checked {
@@ -539,5 +539,5 @@
 }
 
 .cronomix-project-suggestions {
-    min-height: 44px;
+    min-height: 32px;
 }
