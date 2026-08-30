@@ -3,35 +3,35 @@
 # Nota
 
 [![Version](https://img.shields.io/badge/version-v0.1.0-blue)](https://github.com/jeremiejt38/nota/releases)
-[![Statut](https://img.shields.io/badge/status-alpha-orange)](https://github.com/jeremiejt38/nota)
+[![Status](https://img.shields.io/badge/status-alpha-orange)](https://github.com/jeremiejt38/nota)
 [![GNOME](https://img.shields.io/badge/GNOME-49%2F50-green)](https://www.gnome.org/)
-[![Licence](https://img.shields.io/badge/licence-MIT-lightgrey)](LICENSE.md)
+[![License](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE.md)
 
-**Extension GNOME Shell pour la prise de notes rapides et le project-tagging — comme des post-it dans la barre supérieure.**
+**A GNOME Shell extension for quick notes and project tagging — like sticky notes in the top panel.**
 
-Fork de [Chronomix](https://github.com/zagortenay333/cronomix) dont la partie minuteur/chronomètre a été retirée au profit d'un flux de notes.
+Forked from [Chronomix](https://github.com/zagortenay333/cronomix) with the timer/stopwatch parts removed in favor of a note-taking flow.
 
 </div>
 
 ## Introduction
 
-Nota reste accessible d'un clic dans le panneau GNOME. Chaque note est rattachée à un **projet**, ce qui permet de filtrer rapidement les idées, tâches et rappels par contexte. L'extension garde une approche texte libre (markdown-like) mais ajoute des raccourcis visuels pour la priorité et la date d'échéance.
+Nota stays one click away in the GNOME top panel. Every note is tied to a **project**, so you can quickly filter ideas, tasks and reminders by context. The extension keeps a free-text (markdown-like) approach but adds handy shortcuts for priority and due date.
 
-Public visé : utilisateur·rice cherchant un bloc-notes éphémère à portée de main, sans quitter son bureau GNOME.
+Target audience: anyone who wants an ephemeral notepad at hand without leaving their GNOME desktop.
 
-## Fonctionnalités principales
+## Main features
 
-- **Création rapide** : ouverture depuis le panneau, autocomplétion du projet, validation sur `Entrée`.
-- **Taggage par projet** : toute note est associée à un projet existant ou nouveau.
-- **Filtre projet** : sélecteur intelligent dans le widget principal pour n'afficher qu'un projet à la fois.
-- **Priorité** : boutons Bas / Normal / Élevé (Normal par défaut).
-- **Date d'échéance** : ajout rapide d'un `due:` lors de la création.
-- **Interface tactile** : boutons et zones cliquables plus larges que l'original.
+- **Quick capture** : open from the panel, project autocompletion, save with `Enter`.
+- **Project tagging** : every note is linked to an existing or new project.
+- **Project filter** : smart selector in the main widget to show only one project at a time.
+- **Priority** : Low / Normal / High buttons (Normal by default).
+- **Due date** : quick `due:` insertion while creating a note.
+- **Touch-friendly** : larger buttons and click targets than the original.
 
-## Prérequis
+## Requirements
 
-- GNOME Shell 49 ou 50.
-- GJS / TypeScript uniquement nécessaires pour compiler en local.
+- GNOME Shell 49 or 50.
+- GJS / TypeScript are only needed to compile locally.
 
 ## Installation
 
@@ -41,46 +41,46 @@ cd nota
 ./scripts/build
 ```
 
-Puis redémarrer la session GNOME et activer l'extension via l'application Extensions.
+Then restart your GNOME session and enable the extension in the Extensions app.
 
-## Développement
+## Development
 
 ```bash
-# Éditer les sources TypeScript, puis
+# Edit TypeScript sources, then
 tsc --watch
-# Dans un autre terminal :
+# In another terminal:
 ./scripts/restart
 ./scripts/listen
 ```
 
-Voir `scripts/build` pour le détail complet du workflow.
+See `scripts/build` for the complete workflow.
 
 ## Tests
 
-Le projet n'a pas encore de suite de tests automatisés. Les validations en local portent sur :
+There is no automated test suite yet. Local validation covers:
 
-- la compilation TypeScript (`tsc --noEmit`) ;
-- le chargement de l'extension sans erreur dans `scripts/listen` ;
-- la cohérence des fichiers de données et des chaînes de traduction.
+- TypeScript compilation (`tsc --noEmit`);
+- loading the extension without errors via `scripts/listen`;
+- data file and translation string consistency.
 
 ## Changelog
 
-Voir [CHANGELOG.md](CHANGELOG.md) et les [releases](https://github.com/jeremiejt38/nota/releases).
+See [CHANGELOG.md](CHANGELOG.md) and the [releases](https://github.com/jeremiejt38/nota/releases) page.
 
-## Roadmap vers v0.2.0
+## Roadmap to v0.2.0
 
-- [ ] Améliorer le responsive et l'ergonomie tactile.
-- [ ] Synchroniser les projets avec un fichier de configuration utilisateur.
-- [ ] Ajouter des raccourcis clavier configurables.
+- [ ] Improve responsive and touch ergonomics.
+- [ ] Sync projects with a user-defined configuration file.
+- [ ] Add configurable keyboard shortcuts.
 
-## Contribution
+## Contributing
 
-Les contributions passent par des branches courtes et des commits atomiques au format Conventional Commits. Voir `docs/PROJECT_WORKFLOW.md` (généré depuis KSP) pour le détail.
+Contributions use short-lived branches and atomic Conventional Commits. See `docs/PROJECT_WORKFLOW.md` (generated from KSP) for details.
 
-## Crédits
+## Credits
 
-Fork de [Chronomix](https://github.com/zagortenay333/cronomix) par zagortenay333, sous licence MIT.
+Fork of [Chronomix](https://github.com/zagortenay333/cronomix) by zagortenay333, under the MIT license.
 
-## Licence
+## License
 
-Distribué sous licence MIT. Voir [LICENSE.md](LICENSE.md).
+Distributed under the MIT license. See [LICENSE.md](LICENSE.md).
