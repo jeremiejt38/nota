@@ -1,5 +1,4 @@
 import St from 'gi://St';
-import Meta from 'gi://Meta';
 import Clutter from 'gi://Clutter';
 import { Switch } from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
@@ -62,7 +61,7 @@ export class Button extends PubSub<ButtonEvents> {
         this.actor.connect('scroll-event', (_:unknown, event: Clutter.Event) => this.#on_mouse_scroll(event));
         this.actor.connect('key-release-event', (_:unknown, event: Clutter.Event) => this.#on_key_release(event));
         this.actor.connect('button-release-event', (_:unknown, event: Clutter.Event) => this.#on_mouse_release(event));
-        this.actor.connect('touch_event', () => { if (Meta.is_wayland_compositor()) this.publish('left_click', null); });
+        this.actor.connect('captured-event', (_:unknown, event: Clutter.Event) => this.#on_captured_event(event));
     }
 
     set_icon (icon: string) {
@@ -131,6 +130,16 @@ export class Button extends PubSub<ButtonEvents> {
         } else if (direction === Clutter.ScrollDirection.DOWN) {
             this.publish('scroll', 1);
         }
+    }
+
+    #on_captured_event (event: Clutter.Event) {
+        if (event.type() === Clutter.EventType.TOUCH_END) {
+            if (this.#checked !== undefined) this.checked = !this.checked;
+            this.publish('left_click', null);
+            return Clutter.EVENT_STOP;
+        }
+
+        return Clutter.EVENT_PROPAGATE;
     }
 }
 
