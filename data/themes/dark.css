@@ -477,3 +477,67 @@
     border-radius-bottomleft: 8px;
     border-radius-bottomright: 8px;
 }
+
+/* ==========================================================================
+ * Nota additions (touch-friendly & project UI)
+ * ========================================================================== */
+.cronomix-touch-button,
+.cronomix-priority-button,
+.cronomix-project-button {
+    min-height: 36px;
+    padding: 8px 12px;
+}
+
+.cronomix-project-button {
+    min-width: 80px;
+}
+
+.cronomix-note-hint {
+    font-size: 0.85em;
+    color: rgba(255, 255, 255, .6);
+    padding: 4px 0;
+}
+
+/* Larger hit targets across the board */
+.cronomix-button {
+    padding: 10px 12px;
+    min-height: 38px;
+}
+
+.cronomix-button StIcon {
+    icon-size: 20px;
+}
+
+.cronomix-checkbox {
+    min-height: 32px;
+    min-width: 32px;
+}
+
+.cronomix-entry {
+    padding: 10px 12px;
+    min-height: 40px;
+}
+
+.cronomix-card .header,
+.cronomix-card .body {
+    padding: 12px;
+}
+
+.cronomix-menu-button {
+    padding: 10px 12px;
+    min-height: 38px;
+}
+
+.cronomix-project-button:checked {
+    color: #73C2FE;
+    background-color: rgba(50, 200, 255, .2);
+}
+
+.cronomix-priority-button:checked {
+    color: #FFAB42;
+    background-color: rgba(255, 171, 66, .2);
+}
+
+.cronomix-project-suggestions {
+    min-height: 44px;
+}

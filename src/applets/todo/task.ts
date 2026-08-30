@@ -3,12 +3,12 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 
 import { TodoApplet } from './main.js';
 import * as Misc from './../../utils/misc.js';
-import { Popup } from './../../utils/popup.js';
 import { unreachable } from './../../utils/misc.js';
 import * as P from './../../utils/markup/parser.js';
 import { get_iso_date } from './../../utils/time.js';
 import { Markup } from './../../utils/markup/renderer.js';
 import { EditorView } from './../../utils/markup/editor.js';
+import { Entry } from './../../utils/entry.js';
 import { ButtonBox, Button, CheckBox } from './../../utils/button.js';
 
 export class Task {
@@ -151,7 +151,6 @@ export class TaskCard extends Misc.Card {
         const checkbox        = new CheckBox({ parent: this.left_header_box, checked: !!config.done });
         const delete_button   = new Button({ parent: this.autohide_box, icon: 'cronomix-trash-symbolic' , style_class: 'cronomix-floating-button'});
         const edit_button     = new Button({ parent: this.autohide_box, icon: 'cronomix-edit-symbolic', style_class: 'cronomix-floating-button' });
-        const tracker_button  = new Button({ parent: this.autohide_box, icon: 'cronomix-time-tracker-symbolic' , style_class: 'cronomix-floating-button'});
         const pin_button      = new Button({ parent: config.pin ? this.header : this.autohide_box, icon: 'cronomix-pin-symbolic' , style_class: 'cronomix-floating-button'});
         const priority_button = !config.priority ? null : new Button({ parent: this.header, label: '#' + config.priority, style_class: 'cronomix-floating-button cronomix-red' });
         const hide_button     = !config.hide ? null : new Button({ parent: this.header, icon: 'cronomix-hidden-symbolic', style_class: 'cronomix-floating-button' });
@@ -205,7 +204,6 @@ export class TaskCard extends Misc.Card {
             task.serialize_header();
             applet.flush_tasks();
             applet.show_main_view();
-            applet.tracker.update_slot(task);
         });
         checkbox.subscribe('left_click', () => {
             task.ast.config.done = !task.ast.config.done;
@@ -217,94 +215,8 @@ export class TaskCard extends Misc.Card {
             task.serialize_header();
             applet.flush_tasks();
             applet.show_main_view();
-            applet.tracker.update_slot(task);
         });
-        tracker_button.subscribe('left_click', () => {
-            const popup = new TimeTrackerPopup(applet, task, tracker_button);
-            popup.open_at_widget(tracker_button);
-        });
-    }
-}
 
-class TimeTrackerPopup extends Popup {
-    #applet: TodoApplet;
-    #task: Task;
-    #sid = 0;
-
-    constructor (applet: TodoApplet, task: Task, at: Button) {
-        super(at.actor, undefined, true);
-        this.#applet = applet;
-        this.#task = task;
-        super.on_close = () => applet.tracker.unsubscribe(this.#sid);
-        this.#update_ui();
-    }
-
-    #update_ui () {
-        const box     = this.scrollbox.box;
-        const tracker = this.#applet.tracker;
-        const slot    = tracker.get_slot(this.#task);
-
-        box.destroy_all_children();
-        this.boxpointer.width = -1;
-
-        if (! slot) {
-            const label = new St.Label({ text: _('No time tracker file selected.') });
-            box.add_child(label);
-            const button = new Button({ parent: box, wide: true, label: _('Open time tracker settings') });
-            Misc.focus_when_mapped(button.actor);
-            button.subscribe('left_click', () => {
-                this.close();
-                this.#applet.show_tracker_view();
-            });
-        } else if (slot.task.text !== this.#task.text) {
-            const msg = _('The text of the corresponding tracker slot does not match this task.') + '\n\n' +
-                        _('Here is what the text in the slot currently looks like:') + '\n' +
-                        '>' + slot.task.text.replaceAll('\n', '\n  ') + '\n' +
-                        _('You can do one of the following:') + '\n' +
-                        '-  ' + _('Create a new slot leaving the old one in the tracker.') + '\n' +
-                        '-  ' + _('Update the current slot to match with this task.');
-            box.add_child(new Markup(msg).actor);
-
-            const button_box    = new ButtonBox(box);
-            const insert_button = button_box.add({ wide: true, label: _('Create new slot') });
-            const update_button = button_box.add({ wide: true, label: _('Update current slot') });
-            Misc.focus_when_mapped(insert_button.actor);
-
-            insert_button.subscribe('left_click', () => {
-                delete this.#task.ast.config.track;
-                this.#task.serialize_header();
-                this.#applet.flush_tasks();
-                this.#update_ui();
-            });
-            update_button.subscribe('left_click', () => {
-                tracker.update_slot(this.#task);
-                this.#update_ui();
-            });
-        } else if (tracker.tic && tracker.tracked_slot === slot) {
-            const time_label = new St.Label({ text: tracker.time.fmt_hms(), style: 'font-weight: bold;', style_class: 'cronomix-yellow' });
-            box.add_child(time_label);
-
-            const buttons      = new ButtonBox(box);
-            const ctrl_button  = buttons.add({ wide: true, label: _('Stop tracking') });
-            const stats_button = buttons.add({ wide: true, label: _('Stats') });
-            Misc.focus_when_mapped(ctrl_button.actor);
-
-            this.#sid = tracker.subscribe('tic', () => time_label.text = tracker.time.fmt_hms());
-            stats_button.subscribe('left_click', () => this.#applet.show_tracker_view(this.#task));
-            ctrl_button.subscribe('left_click', () => {
-                tracker.stop();
-                tracker.unsubscribe(this.#sid);
-                this.#sid = 0;
-                this.#update_ui();
-            });
-        } else {
-            const buttons      = new ButtonBox(box);
-            const ctrl_button  = buttons.add({ wide: true, label: _('Start tracking') });
-            const stats_button = buttons.add({ wide: true, label: _('Stats') });
-            Misc.focus_when_mapped(ctrl_button.actor);
-            stats_button.subscribe('left_click', () => this.#applet.show_tracker_view(this.#task));
-            ctrl_button.subscribe('left_click', () => { tracker.start(slot); this.#update_ui(); });
-        }
     }
 }
 
@@ -312,6 +224,7 @@ export class TaskEditor extends EditorView {
     #task?: Task|null;
     #applet: TodoApplet;
     #tags: Set<string> | null = null;
+    #priority_buttons: Map<number, Button>|null = null;
 
     constructor (applet: TodoApplet, task?: Task) {
         super((text, ast, body) => {
@@ -326,7 +239,12 @@ export class TaskEditor extends EditorView {
         this.#applet = applet;
         if (task) this.#task = task;
 
-        const initial_text = task?.text ?? `[created:${get_iso_date()}] `;
+        const initial_priority = task?.ast.config.priority ?? 2;
+        const initial_due = task?.ast.config.due ?? '';
+        let initial_text = task?.text ?? `[created:${get_iso_date()} #${initial_priority}] `;
+        if (initial_due && !initial_text.includes(`due:${initial_due}`)) {
+            initial_text = initial_text.replace(/\[([^\]]+)\]/, `[due:${initial_due} $1]`);
+        }
         this.main_view.entry.set_text(initial_text, false);
 
         this.main_view.get_completions = ref => {
@@ -340,14 +258,56 @@ export class TaskEditor extends EditorView {
                 }
             }
 
+            const needle = ref.toLowerCase();
             const result = [];
-            for (const tag of this.#tags) if (tag.startsWith(ref) && (tag.length > ref.length)) result.push(tag);
-            return result;
+            for (const tag of this.#tags) {
+                if (tag.toLowerCase().includes(needle) && (tag.length > ref.length || tag.toLowerCase() !== needle)) {
+                    result.push(tag);
+                }
+            }
+            return result.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
         };
 
+        this.main_view.on_save = () => this.#on_ok_pressed();
+
+        const meta_box = new St.BoxLayout({ vertical: true, style_class: 'cronomix-spacing' });
+        this.main_view.left_box.insert_child_at_index(meta_box, 0);
+
+        const hint = new St.Label({ text: _('Tip: type @project to tag a note. Press Enter to save, Shift+Enter for a new line.'), style_class: 'cronomix-note-hint' });
+        meta_box.add_child(hint);
+
+        const priority_box = new St.BoxLayout({ style_class: 'cronomix-button-box' });
+        meta_box.add_child(priority_box);
+
+        const priority_buttons = new Map<number, Button>();
+        const add_priority_button = (label: string, value: number) => {
+            const button = new Button({ parent: priority_box, label, wide: true, style_class: 'cronomix-priority-button' });
+            priority_buttons.set(value, button);
+            button.subscribe('left_click', () => this.#set_priority(value));
+        };
+        add_priority_button(_('Low'), 3);
+        add_priority_button(_('Normal'), 2);
+        add_priority_button(_('High'), 1);
+        this.#priority_buttons = priority_buttons;
+        this.#update_priority_buttons(this.#priority_buttons, initial_priority);
+
+        const due_box = new St.BoxLayout({ style_class: 'cronomix-spacing' });
+        meta_box.add_child(due_box);
+
+        const due_entry = new Entry(_('Due date (YYYY-MM-DD)'));
+        due_box.add_child(due_entry.actor);
+        if (initial_due) due_entry.set_text(initial_due, false);
+
+        const due_button = new Button({ parent: due_box, label: _('Set due date'), style_class: 'cronomix-touch-button' });
+        due_button.subscribe('left_click', () => {
+            const date = due_entry.entry.text.trim();
+            if (!date) return;
+            this.#set_due(date);
+        });
+
         const button_box    = new ButtonBox(this.main_view.left_box);
-        const button_ok     = button_box.add({ wide: true, label: _('Ok') });
-        const button_cancel = button_box.add({ wide: true, label: _('Cancel') });
+        const button_ok     = button_box.add({ wide: true, label: _('Ok'), style_class: 'cronomix-touch-button' });
+        const button_cancel = button_box.add({ wide: true, label: _('Cancel'), style_class: 'cronomix-touch-button' });
 
         button_ok.subscribe('left_click', () => this.#on_ok_pressed());
         button_cancel.subscribe('left_click', () => this.#applet.show_main_view());
@@ -355,6 +315,33 @@ export class TaskEditor extends EditorView {
 
     destroy () {
         this.actor.destroy();
+    }
+
+    #update_priority_buttons (buttons: Map<number, Button>, active: number) {
+        for (const [value, button] of buttons) {
+            if (value === active) {
+                button.actor.add_style_pseudo_class('checked');
+            } else {
+                button.actor.remove_style_pseudo_class('checked');
+            }
+        }
+    }
+
+    #set_priority (priority: number) {
+        const entry = this.main_view.entry.entry;
+        let text = entry.text;
+        text = text.replace(/\[([^[\]]*?)\s+#\d\b\s*/, '[$1 ');
+        text = text.replace(/\[([^\]]+?)\s*\]/, (_match, inner) => `[${inner.trim()} #${priority}]`);
+        this.main_view.entry.set_text(text, false);
+        if (this.#priority_buttons) this.#update_priority_buttons(this.#priority_buttons, priority);
+    }
+
+    #set_due (date: string) {
+        const entry = this.main_view.entry.entry;
+        let text = entry.text;
+        text = text.replace(/\[([^[\]]*?)\s+due:\S+\s*/, '[$1 ');
+        text = text.replace(/\[([^\]]+?)\s*\]/, (_match, inner) => `[${inner.trim()} due:${date}]`);
+        this.main_view.entry.set_text(text, false);
     }
 
     #on_ok_pressed () {
@@ -373,8 +360,6 @@ export class TaskEditor extends EditorView {
         }
 
         if (this.#task) {
-            const t = this.#applet.tracker;
-            if (t.is_tracking(this.#task)) t.stop();
             Misc.array_remove(this.#applet.tasks, this.#task);
         }
 

@@ -22,12 +22,7 @@ export class FilterGroup {
 export class KanbanView {
     actor: St.BoxLayout;
 
-    #applet: TodoApplet;
-    #tracker_id1 = 0;
-    #tracker_id2 = 0;
-
     constructor (applet: TodoApplet) {
-        this.#applet = applet;
         this.actor = new St.BoxLayout({ vertical: true, x_expand: true, style_class: 'cronomix-spacing' });
 
         //
@@ -36,8 +31,8 @@ export class KanbanView {
         const header = new St.BoxLayout();
         this.actor.add_child(header);
 
-        const add_task_button = new Button({ parent: header, style_class: 'bg', icon: 'cronomix-plus-symbolic', label: _('Add Task') });
-        Misc.focus_when_mapped(add_task_button.actor);
+        const add_note_button = new Button({ parent: header, icon: 'cronomix-plus-symbolic', label: _('Add Note'), style_class: 'cronomix-touch-button bg' });
+        Misc.focus_when_mapped(add_note_button.actor);
 
         header.add_child(new St.Widget({ x_expand: true, style: 'min-width: 20px;' }));
 
@@ -46,10 +41,66 @@ export class KanbanView {
         const sort_button     = button_box.add({ icon: 'cronomix-sort-ascending-symbolic' });
         const boards_button   = button_box.add({ icon: 'cronomix-filter-symbolic' });
         const eximport_button = button_box.add({ icon: 'cronomix-import-export-symbolic' });
-        const tracker_button  = button_box.add({ icon: 'cronomix-time-tracker-symbolic' });
         const settings_button = button_box.add({ icon: 'cronomix-wrench-symbolic' });
 
-        if (applet.tracker.tic) tracker_button.actor.add_style_class_name('cronomix-yellow');
+        //
+        // Project selector with autocomplete
+        //
+        const projects = new Set<string>();
+        for (const task of applet.tasks) {
+            for (const tag of task.ast.config.tags ?? []) {
+                projects.add(tag);
+            }
+        }
+
+        const project_box = new St.BoxLayout({ vertical: true, style_class: 'cronomix-spacing' });
+        this.actor.add_child(project_box);
+
+        const project_label = new St.Label({ text: _('Projects'), style: 'font-weight: bold;', style_class: 'cronomix-box' });
+        project_box.add_child(project_label);
+
+        const project_entry = new Entry(_('Type to filter projects...'));
+        project_box.add_child(project_entry.actor);
+        project_entry.actor.visible = projects.size > 0;
+
+        const suggestions_scroll = new ScrollBox(false);
+        project_box.add_child(suggestions_scroll.actor);
+        suggestions_scroll.actor.visible = projects.size > 0;
+
+        const suggestion_box = new St.BoxLayout({ style_class: 'cronomix-spacing cronomix-project-suggestions' });
+        suggestions_scroll.box.add_child(suggestion_box);
+
+        const project_list = Array.from(projects).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+
+        const render_suggestions = () => {
+            const needle = project_entry.entry.text.toLowerCase();
+            suggestion_box.destroy_all_children();
+
+            const all_button = new Button({ parent: suggestion_box, label: _('All'), style_class: 'cronomix-project-button' });
+            if (!applet.project_filter) all_button.actor.add_style_pseudo_class('checked');
+            all_button.subscribe('left_click', () => { applet.project_filter = ''; applet.show_main_view(); });
+
+            for (const project of project_list) {
+                if (needle && !project.toLowerCase().includes(needle)) continue;
+                const button = new Button({ parent: suggestion_box, label: project, style_class: 'cronomix-project-button' });
+                if (applet.project_filter === project) button.actor.add_style_pseudo_class('checked');
+                button.subscribe('left_click', () => { applet.project_filter = project; applet.show_main_view(); });
+            }
+        };
+
+        project_entry.entry.clutter_text.connect('text-changed', () => render_suggestions());
+        render_suggestions();
+
+        project_entry.entry.clutter_text.connect('captured-event', (_: unknown, event: Clutter.Event) => {
+            if (event.type() !== Clutter.EventType.KEY_PRESS) return Clutter.EVENT_PROPAGATE;
+            if (event.get_key_symbol() === Clutter.KEY_Return || event.get_key_symbol() === Clutter.KEY_KP_Enter) {
+                const text = project_entry.entry.text.trim();
+                applet.project_filter = text;
+                applet.show_main_view();
+                return Clutter.EVENT_STOP;
+            }
+            return Clutter.EVENT_PROPAGATE;
+        });
 
         //
         // columns
@@ -58,12 +109,14 @@ export class KanbanView {
         this.actor.add_child(columns_scroll.actor);
         columns_scroll.actor.visible = applet.tasks.length > 0;
 
+        const project_filter = applet.project_filter ? `@${applet.project_filter} & !hide` : '';
         const current_filter = applet.storage.read.active_filter.value;
         const filters = applet.storage.read.filters.value[current_filter]?.filters?.replaceAll('\n', '')?.split(',');
         const columns = new Array<KanbanColumn>();
 
         // Make columns:
-        for (const filter of filters ?? ['* & !hide']) {
+        const raw_filters = filters ?? [project_filter || '* & !hide'];
+        for (const filter of raw_filters) {
             const filter_node = new P.Parser(filter).try_parse_filter();
 
             if (filter_node) {
@@ -101,17 +154,12 @@ export class KanbanView {
         sort_button.subscribe('left_click', () => applet.show_sort_view());
         settings_button.subscribe('left_click', () => applet.show_settings());
         search_button.subscribe('left_click', () => applet.show_search_view());
-        add_task_button.subscribe('left_click', () => applet.show_task_editor());
-        tracker_button.subscribe('left_click', () => applet.show_tracker_view());
+        add_note_button.subscribe('left_click', () => applet.show_task_editor());
         eximport_button.subscribe('left_click', () => applet.show_eximport_view());
         boards_button.subscribe('left_click', () => applet.show_filter_view());
-        this.#tracker_id1 = applet.tracker.subscribe('stop', () => tracker_button.actor.remove_style_class_name('cronomix-yellow'));
-        this.#tracker_id2 = applet.tracker.subscribe('tic', () => tracker_button.actor.add_style_class_name('cronomix-yellow'));
     }
 
     destroy () {
-        this.#applet.tracker.unsubscribe(this.#tracker_id1);
-        this.#applet.tracker.unsubscribe(this.#tracker_id2);
         this.actor.destroy();
     }
 }
