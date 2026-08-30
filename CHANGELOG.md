@@ -5,6 +5,13 @@ Tous les changements notables de ce projet seront documentés ici.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/spec/v2.0.0.html).
 
+## [0.1.1] - 2026-08-30
+
+### Corrections
+
+- Ajout du fichier `LICENSE.md` MIT (hérité de Chronomix, copyright étendu).
+- Renommage de `readme.md` en `README.md` pour correspondre au standard KSP.
+
 ## [0.1.0] - 2026-08-17
 
 ### Initial
