@@ -8,6 +8,7 @@ import { SortView, SortSchema } from './sort.js';
 import { Storage } from './../../utils/storage.js';
 import * as P from './../../utils/markup/parser.js';
 import { ImportExportView } from './import_export.js';
+import { ProjectSelector } from './project.js';
 import { FilterGroup, FilterView, KanbanView } from './filter.js';
 import { Applet, PanelPosition, PanelPositionTr } from './../applet.js';
 
@@ -83,7 +84,7 @@ export class TodoApplet extends Applet {
         this.storage.init_keymap({
             open:           () => { this.panel_item.menu.open(); },
             search:         () => { this.panel_item.menu.open(); this.show_search_view(); },
-            add_task:       () => { this.panel_item.menu.open(); if (! (this.#current_view instanceof TaskEditor)) this.show_task_editor(); },
+            add_task:       () => { this.panel_item.menu.open(); if (! (this.#current_view instanceof ProjectSelector)) this.show_project_selector(); },
             open_todo_file: () => { Fs.open_file_in_default_app(this.storage.read.todo_file.value ?? ''); },
         });
         this.set_panel_position(this.storage.read.panel_position.value);
@@ -161,9 +162,16 @@ export class TodoApplet extends Applet {
         this.#current_view = view;
     }
 
-    show_task_editor (task?: Task) {
+    show_project_selector () {
         this.#current_view?.destroy();
-        const view = new TaskEditor(this, task ?? undefined);
+        const view = new ProjectSelector(this);
+        this.#current_view = view;
+        this.menu.add_child(view.actor);
+    }
+
+    show_task_editor (task?: Task, project = '') {
+        this.#current_view?.destroy();
+        const view = new TaskEditor(this, task ?? undefined, project);
         this.#current_view = view;
         this.menu.add_child(view.actor);
     }

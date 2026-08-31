@@ -226,7 +226,7 @@ export class TaskEditor extends EditorView {
     #tags: Set<string> | null = null;
     #priority_buttons: Map<number, Button>|null = null;
 
-    constructor (applet: TodoApplet, task?: Task) {
+    constructor (applet: TodoApplet, task?: Task, project = '') {
         super((text, ast, body) => {
             if (ast.indent > 0) return null
             const task = new Task(text, ast);
@@ -241,7 +241,8 @@ export class TaskEditor extends EditorView {
 
         const initial_priority = task?.ast.config.priority ?? 2;
         const initial_due = task?.ast.config.due ?? '';
-        let initial_text = task?.text ?? `[created:${get_iso_date()} #${initial_priority}] `;
+        const initial_project = project ? (project.startsWith('@') ? project : '@' + project) : '';
+        let initial_text = task?.text ?? `[created:${get_iso_date()} #${initial_priority}${initial_project ? ' ' + initial_project : ''}] `;
         if (initial_due && !initial_text.includes(`due:${initial_due}`)) {
             initial_text = initial_text.replace(/\[([^\]]+)\]/, `[due:${initial_due} $1]`);
         }

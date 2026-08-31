@@ -154,7 +154,7 @@ export class KanbanView {
         sort_button.subscribe('left_click', () => applet.show_sort_view());
         settings_button.subscribe('left_click', () => applet.show_settings());
         search_button.subscribe('left_click', () => applet.show_search_view());
-        add_note_button.subscribe('left_click', () => applet.show_task_editor());
+        add_note_button.subscribe('left_click', () => applet.show_project_selector());
         eximport_button.subscribe('left_click', () => applet.show_eximport_view());
         boards_button.subscribe('left_click', () => applet.show_filter_view());
     }
