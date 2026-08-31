@@ -109,13 +109,14 @@ export class KanbanView {
         this.actor.add_child(columns_scroll.actor);
         columns_scroll.actor.visible = applet.tasks.length > 0;
 
-        const project_filter = applet.project_filter ? `@${applet.project_filter} & !hide` : '';
+        const selected_project = applet.project_filter.startsWith('@') ? applet.project_filter : `@${applet.project_filter}`;
+        const project_filter = applet.project_filter ? `${selected_project} & !hide` : '';
         const current_filter = applet.storage.read.active_filter.value;
         const filters = applet.storage.read.filters.value[current_filter]?.filters?.replaceAll('\n', '')?.split(',');
         const columns = new Array<KanbanColumn>();
 
         // Make columns:
-        const raw_filters = filters ?? [project_filter || '* & !hide'];
+        const raw_filters = project_filter ? [project_filter] : filters ?? ['* & !hide'];
         for (const filter of raw_filters) {
             const filter_node = new P.Parser(filter).try_parse_filter();
 
