@@ -11,7 +11,7 @@ import * as Misc from './../../utils/misc.js';
 import { Entry } from './../../utils/entry.js';
 import * as P from './../../utils/markup/parser.js';
 import { show_info_popup } from './../../utils/popup.js';
-import { ScrollBox, LazyScrollBox } from './../../utils/scroll.js';
+import { ScrollBox } from './../../utils/scroll.js';
 import { Button, CheckBox, ButtonBox } from './../../utils/button.js';
 
 export class FilterGroup {
@@ -76,14 +76,16 @@ export class KanbanView {
             const needle = project_entry.entry.text.toLowerCase();
             suggestion_box.destroy_all_children();
 
+            const active_project = applet.project_filter ? (applet.project_filter.startsWith('@') ? applet.project_filter : '@' + applet.project_filter) : '';
+
             const all_button = new Button({ parent: suggestion_box, label: _('All'), style_class: 'cronomix-project-button' });
-            if (!applet.project_filter) all_button.actor.add_style_pseudo_class('checked');
+            if (!active_project) all_button.actor.add_style_pseudo_class('checked');
             all_button.subscribe('left_click', () => { applet.project_filter = ''; applet.show_main_view(); });
 
             for (const project of project_list) {
                 if (needle && !project.toLowerCase().includes(needle)) continue;
                 const button = new Button({ parent: suggestion_box, label: project, style_class: 'cronomix-project-button' });
-                if (applet.project_filter === project) button.actor.add_style_pseudo_class('checked');
+                if (active_project === project) button.actor.add_style_pseudo_class('checked');
                 button.subscribe('left_click', () => { applet.project_filter = project; applet.show_main_view(); });
             }
         };
@@ -95,7 +97,7 @@ export class KanbanView {
             if (event.type() !== Clutter.EventType.KEY_PRESS) return Clutter.EVENT_PROPAGATE;
             if (event.get_key_symbol() === Clutter.KEY_Return || event.get_key_symbol() === Clutter.KEY_KP_Enter) {
                 const text = project_entry.entry.text.trim();
-                applet.project_filter = text;
+                applet.project_filter = text ? (text.startsWith('@') ? text : '@' + text) : '';
                 applet.show_main_view();
                 return Clutter.EVENT_STOP;
             }
@@ -122,7 +124,7 @@ export class KanbanView {
             const filter_node = new P.Parser(filter).try_parse_filter();
 
             if (filter_node) {
-                const column = new KanbanColumn(applet, filter_node, !!filters);
+                const column = new KanbanColumn(filter_node, !!filters);
                 columns_scroll.box.add_child(column.actor);
                 columns.push(column);
             }
@@ -139,17 +141,13 @@ export class KanbanView {
         }
 
         { // Sort and make task card widgets to the columns:
-            const gen = function * (tasks: Task[]) {
-                for (const [, task] of tasks.entries()) {
-                    const card = new TaskCard(applet, task);
-                    yield card.actor;
-                }
-            };
-
             const sort = applet.storage.read.sort.value;
             for (const column of columns) {
                 column.tasks.sort((a, b) => compare_tasks(sort, a, b));
-                column.tasks_scroll.set_children(column.tasks.length, gen(column.tasks));
+                for (const task of column.tasks) {
+                    const card = new TaskCard(applet, task);
+                    column.tasks_scroll.box.add_child(card.actor);
+                }
             }
         }
 
@@ -170,9 +168,9 @@ class KanbanColumn {
     filter: P.AstFilter;
     actor: St.BoxLayout;
     tasks = new Array<Task>();
-    tasks_scroll: LazyScrollBox;
+    tasks_scroll: ScrollBox;
 
-    constructor (applet: TodoApplet, filter: P.AstFilter, show_filter_header = true) {
+    constructor (filter: P.AstFilter, show_filter_header = true) {
         this.filter = filter;
         this.actor = new St.BoxLayout({ vertical: true, x_expand: true, style_class: 'cronomix-spacing' });
 
@@ -181,7 +179,7 @@ class KanbanColumn {
             this.actor.add_child(header);
         }
 
-        this.tasks_scroll = new LazyScrollBox(applet.ext.storage.read.lazy_list_page_size.value);
+        this.tasks_scroll = new ScrollBox(true);
         this.actor.add_child(this.tasks_scroll.actor);
     }
 }

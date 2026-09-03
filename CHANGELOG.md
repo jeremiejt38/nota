@@ -11,14 +11,18 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/spec/v2
 
 - Sélecteur de projet affiché avant l'éditeur lors de la création d'une note.
 - Tri des notes par date de création, de la plus récente à la plus ancienne.
+- Affichage compact des cartes de note : case à cocher, projet et date de création sur une seule ligne.
 
 ### Modifié
 
 - Filtre par défaut de la vue principale : affiche uniquement les notes non cochées.
+- Toutes les notes sont chargées dès l'ouverture de la vue principale (pas de bouton "charger plus").
+- Lorsqu'un projet est sélectionné, son tag est masqué sur les cartes pour gagner de la place.
 
 ### Corrigé
 
 - Filtre par projet : les boutons de projet appliquent correctement le filtre sélectionné.
+- Forme de la case à cocher : elle est maintenant un carré.
 
 ## [0.1.1] - 2026-08-30
 

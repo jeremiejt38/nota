@@ -1,4 +1,5 @@
 import St from 'gi://St';
+import Clutter from 'gi://Clutter';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { TodoApplet } from './main.js';
@@ -145,6 +146,7 @@ export class TaskCard extends Misc.Card {
         super();
 
         const config = task.ast.config;
+        const active_project = applet.project_filter ? (applet.project_filter.startsWith('@') ? applet.project_filter : '@' + applet.project_filter) : '';
 
         this.left_header_box.add_style_class_name('cronomix-spacing');
 
@@ -155,35 +157,22 @@ export class TaskCard extends Misc.Card {
         const priority_button = !config.priority ? null : new Button({ parent: this.header, label: '#' + config.priority, style_class: 'cronomix-floating-button cronomix-red' });
         const hide_button     = !config.hide ? null : new Button({ parent: this.header, icon: 'cronomix-hidden-symbolic', style_class: 'cronomix-floating-button' });
 
-        let tag_box = new St.BoxLayout({ style_class: 'cronomix-spacing' });
-        this.actor.insert_child_above(tag_box, this.header);
-
-        const due_button = !config.due ? null : new Button({ parent: tag_box, label: _('Due') + ' ' + config.due, style_class: 'cronomix-tag-button cronomix-red' });
-
-        if (config.created) {
-            const button = new Button({ parent: tag_box, label: _('Created') + ' ' + config.created, style_class: 'cronomix-tag-button cronomix-green' });
-            button.actor.reactive = false;
-        }
-
-        if (config.completed) {
-            const button = new Button({ parent: tag_box, label: _('Completed') + ' ' + config.completed, style_class: 'cronomix-tag-button cronomix-green' });
-            button.actor.reactive = false;
-        }
-
-        const old_box = tag_box;
-        tag_box = new St.BoxLayout({ style_class: 'cronomix-spacing' });
-        this.actor.insert_child_above(tag_box, old_box);
-
         if (config.tags) {
             for (const tag of config.tags) {
-                const button = new Button({ parent: tag_box, label: tag, style_class: 'cronomix-tag-button cronomix-yellow' });
-                button.subscribe('left_click', () => applet.show_search_view(tag));
-                if (tag_box.get_n_children() === 5) {
-                    const old_box = tag_box;
-                    tag_box = new St.BoxLayout({ style_class: 'cronomix-spacing' });
-                    this.actor.insert_child_above(tag_box, old_box);
-                }
+                if (active_project && tag === active_project) continue;
+                const label = new St.Label({ text: tag, style_class: 'cronomix-yellow', y_align: Clutter.ActorAlign.CENTER });
+                this.left_header_box.add_child(label);
             }
+        }
+
+        if (config.created) {
+            const label = new St.Label({ text: config.created, style_class: 'cronomix-green', y_align: Clutter.ActorAlign.CENTER });
+            this.left_header_box.add_child(label);
+        }
+
+        if (config.due) {
+            const label = new St.Label({ text: _('Due') + ' ' + config.due, style_class: 'cronomix-red', y_align: Clutter.ActorAlign.CENTER });
+            this.left_header_box.add_child(label);
         }
 
         if (body) {
@@ -197,7 +186,6 @@ export class TaskCard extends Misc.Card {
         edit_button.subscribe('left_click', () => applet.show_task_editor(task));
         delete_button.subscribe('left_click', () => applet.show_search_view(task));
         priority_button?.subscribe('left_click', () => applet.show_search_view('#' + config.priority));
-        due_button?.subscribe('left_click', () => applet.show_search_view('due'));
         hide_button?.subscribe('left_click', () => applet.show_search_view('hide'));
         pin_button.subscribe('left_click', () => {
             task.ast.config.pin = !task.ast.config.pin;

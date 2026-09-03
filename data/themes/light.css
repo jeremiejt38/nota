@@ -92,6 +92,8 @@
     background-color: transparent !important;
     border: 2px solid transparent;
     min-height: 28px;
+    min-width: 28px;
+    border-radius: 6px;
 }
 
 /* ==========================================================================
@@ -499,6 +501,7 @@
 .cronomix-checkbox {
     min-height: 22px;
     min-width: 22px;
+    border-radius: 6px;
 }
 
 .cronomix-entry {
