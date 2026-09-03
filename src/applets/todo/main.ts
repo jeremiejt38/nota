@@ -28,6 +28,7 @@ export class TodoApplet extends Applet {
             sort: {
                 tag: 'custom',
                 value: [
+                    { by: 'created',  direction: 'desc' },
                     { by: 'pin',      direction: 'desc' },
                     { by: 'priority', direction: 'asc'  },
                     { by: 'due',      direction: 'asc'  },
@@ -52,6 +53,7 @@ export class TodoApplet extends Applet {
             pin: _('Pin'),
             priority: _('Priority'),
             due: _('Due'),
+            created: _('Created'),
             done: _('Done'),
             hide: _('Hide'),
             asc: _('Ascending'),

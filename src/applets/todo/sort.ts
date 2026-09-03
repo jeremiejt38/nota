@@ -10,7 +10,7 @@ import { unreachable, Card, focus_when_mapped } from './../../utils/misc.js';
 
 export type SortSchema = Array<{
     direction: 'asc'|'desc'
-    by: 'pin'|'due'|'priority'|'done'|'hide',
+    by: 'pin'|'due'|'priority'|'done'|'hide'|'created',
 }>;
 
 export function compare_tasks (schema: Immutable<SortSchema>, a: Task, b: Task): number {
@@ -35,9 +35,10 @@ export function compare_tasks (schema: Immutable<SortSchema>, a: Task, b: Task):
                 result = +A - +B;
                 break;
             case 'due':
+            case 'created':
                 A ??= '9999-99-99';
                 B ??= '9999-99-99';
-                result = (a < b) ? -1 : 1;
+                result = (A < B) ? -1 : 1;
                 break;
             default:
                 unreachable(entry.by);
