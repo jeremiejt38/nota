@@ -304,7 +304,7 @@ export class Parser {
 
         if (txt === '@') {
             if (! this.#lex.try_peek_token('word')) return false;
-            while (this.#lex.try_eat_token('word') || this.#lex.try_eat_token('_'));
+            this.#eat_tag_tokens();
             if (! this.#try_peek_meta_config_delimiter()) return false;
             config.tags ??= new Set<string>();
             config.tags.add(this.#text.substring(token.start, this.#end_of_last_eaten_token));
@@ -373,6 +373,20 @@ export class Parser {
 
         const invalid = Number.isNaN(new Date(text).valueOf());
         return invalid ? null : text;
+    }
+
+    #eat_tag_tokens () {
+        while (true) {
+            if (this.#lex.try_eat_token('word') || this.#lex.try_eat_token('_')) continue;
+
+            if (this.#lex.try_peek_token('-') &&
+                (this.#lex.try_peek_token('word', 1) || this.#lex.try_peek_token('_', 1))) {
+                this.#lex.eat_token(); // '-'
+                continue;
+            }
+
+            break;
+        }
     }
 
     #try_peek_meta_config_delimiter (n = 0): boolean {
@@ -506,7 +520,19 @@ export class Parser {
     #parse_filter_tag (): AstFilterTag {
         const result = this.#make_node(AstFilterTag);
         let { start, end } = this.#lex.eat_token();
-        if (this.#lex.try_peek_token('word')) end = this.#lex.eat_token().end;
+        if (this.#lex.try_peek_token('word')) {
+            end = this.#lex.eat_token().end;
+            while (true) {
+                if (this.#lex.try_peek_token('word') || this.#lex.try_peek_token('_')) {
+                    end = this.#lex.eat_token().end;
+                } else if (this.#lex.try_peek_token('-') && (this.#lex.try_peek_token('word', 1) || this.#lex.try_peek_token('_', 1))) {
+                    this.#lex.eat_token(); // '-'
+                    end = this.#lex.eat_token().end;
+                } else {
+                    break;
+                }
+            }
+        }
         this.#complete_node(result);
         result.text = this.#text.substring(start, end);
         return result;
@@ -815,7 +841,7 @@ export class Parser {
         const result = this.#make_node(AstTagRef);
         result.child = this.#make_node(AstText);
         const start = this.#lex.eat_token().start;
-        while (this.#lex.try_eat_token('word') || this.#lex.try_eat_token('_'));
+        this.#eat_tag_tokens();
         if (this.#body_tags) this.#body_tags.add(this.#text.substring(start, this.#end_of_last_eaten_token));
         this.#complete_node(result.child);
         return this.#complete_node(result);

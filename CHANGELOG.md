@@ -23,6 +23,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/spec/v2
 
 - Filtre par projet : les boutons de projet appliquent correctement le filtre sélectionné.
 - Forme de la case à cocher : elle est maintenant un carré.
+- Les noms de projet peuvent désormais contenir des traits d'union (`@akasha-bot`).
 
 ## [0.1.1] - 2026-08-30
 
